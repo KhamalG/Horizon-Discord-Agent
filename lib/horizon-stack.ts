@@ -7,7 +7,7 @@ export interface HorizonStackProps extends StackProps {
 }
 
 export class HorizonStack extends Stack {
-  readonly envName: string;
+  readonly envName: 'dev' | 'prod';
   readonly storage: StorageConstruct;
 
   constructor(scope: Construct, id: string, props: HorizonStackProps) {

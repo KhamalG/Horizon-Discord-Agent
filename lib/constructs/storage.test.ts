@@ -91,14 +91,10 @@ describe('StorageConstruct — horizon-config table', () => {
   });
 
   test('has no Streams enabled', () => {
-    // Config table should not appear in StreamSpecification assertion
-    // Assert exactly 1 table has streams (the signals table)
-    template.resourceCountIs('AWS::DynamoDB::Table', 2);
     template.hasResourceProperties('AWS::DynamoDB::Table', {
       TableName: 'dev-horizon-config',
+      StreamSpecification: Match.absent(),
     });
-    // Confirm the config table has no stream specification by checking it exists with
-    // no StreamSpecification property (verified via resourceCountIs + signals stream test)
   });
 
   test('table name is prefixed by envName', () => {

@@ -1,15 +1,16 @@
 #!/usr/bin/env ts-node
+/// <reference types="node" />
 /**
  * Seeds the horizon-config DynamoDB table with Lucan persona v1.0.0.
  * Usage: npx ts-node scripts/seed-config.ts --env dev|prod
  *
- * Idempotent: skips write if ACTIVE pointer already exists.
+ * Idempotent: skips write if either item already exists (atomic via TransactWriteItems).
  */
 
 import {
-  ConditionalCheckFailedException,
   DynamoDBClient,
-  PutItemCommand,
+  TransactWriteItemsCommand,
+  TransactionCanceledException,
 } from '@aws-sdk/client-dynamodb';
 
 const args = process.argv.slice(2);
@@ -21,6 +22,14 @@ if (envIndex === -1 || !args[envIndex + 1]) {
 const env = args[envIndex + 1];
 if (env !== 'dev' && env !== 'prod') {
   console.error('--env must be "dev" or "prod"');
+  process.exit(1);
+}
+
+const region = process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
+if (!region) {
+  console.error(
+    'AWS region not set. Export AWS_REGION or AWS_DEFAULT_REGION before running this script.'
+  );
   process.exit(1);
 }
 
@@ -37,48 +46,53 @@ Every signal you deliver includes a disclaimer. You believe financial knowledge 
 not a privilege, and you act accordingly.`;
 
 async function seed() {
-  const client = new DynamoDBClient({});
+  const client = new DynamoDBClient({ region });
   const createdAt = new Date().toISOString();
 
-  // Write versioned persona item (unconditional — safe to overwrite identical content)
-  await client.send(
-    new PutItemCommand({
-      TableName: TABLE_NAME,
-      Item: {
-        PK: { S: PK },
-        SK: { S: VERSIONED_SK },
-        prompt_text: { S: LUCAN_PROMPT },
-        version: { S: '1.0.0' },
-        changelog: { S: 'Initial persona' },
-        created_at: { S: createdAt },
-      },
-    })
-  );
-  console.log(`✅ Written versioned item: ${PK} / ${VERSIONED_SK}`);
-
-  // Write ACTIVE pointer only if it does not already exist (idempotent)
   try {
     await client.send(
-      new PutItemCommand({
-        TableName: TABLE_NAME,
-        Item: {
-          PK: { S: PK },
-          SK: { S: ACTIVE_SK },
-          target_sk: { S: VERSIONED_SK },
-        },
-        ConditionExpression: 'attribute_not_exists(PK)',
+      new TransactWriteItemsCommand({
+        TransactItems: [
+          {
+            Put: {
+              TableName: TABLE_NAME,
+              Item: {
+                PK: { S: PK },
+                SK: { S: VERSIONED_SK },
+                prompt_text: { S: LUCAN_PROMPT },
+                version: { S: '1.0.0' },
+                changelog: { S: 'Initial persona' },
+                created_at: { S: createdAt },
+              },
+              // v1.0.0 is immutable — skip if it already exists
+              ConditionExpression: 'attribute_not_exists(SK)',
+            },
+          },
+          {
+            Put: {
+              TableName: TABLE_NAME,
+              Item: {
+                PK: { S: PK },
+                SK: { S: ACTIVE_SK },
+                target_sk: { S: VERSIONED_SK },
+              },
+              ConditionExpression: 'attribute_not_exists(SK)',
+            },
+          },
+        ],
       })
     );
+    console.log(`✅ Written versioned item: ${PK} / ${VERSIONED_SK}`);
     console.log(`✅ Written ACTIVE pointer → ${VERSIONED_SK}`);
   } catch (err) {
-    if (err instanceof ConditionalCheckFailedException) {
-      console.log(`ℹ️  ACTIVE pointer already exists — skipping (idempotent)`);
+    if (err instanceof TransactionCanceledException) {
+      console.log(`ℹ️  Seed items already exist — skipping (idempotent)`);
     } else {
       throw err;
     }
   }
 
-  console.log(`\nSeed complete for table: ${TABLE_NAME}`);
+  console.log(`\nSeed complete for table: ${TABLE_NAME} (region: ${region})`);
 }
 
 seed().catch((err) => {

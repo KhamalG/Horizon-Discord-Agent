@@ -47,8 +47,14 @@ export class StorageConstruct extends Construct {
     });
 
     this.signalsTableArn = this.signalsTable.tableArn;
-    // stream is guaranteed present because we enabled StreamViewType above
-    this.signalsTableStreamArn = this.signalsTable.tableStreamArn!;
+    const streamArn = this.signalsTable.tableStreamArn;
+    if (!streamArn) {
+      throw new Error(
+        `StorageConstruct: tableStreamArn is undefined on ${envName}-horizon-signals. ` +
+          'Ensure StreamViewType is set on the table.'
+      );
+    }
+    this.signalsTableStreamArn = streamArn;
     this.configTableArn = this.configTable.tableArn;
   }
 }
