@@ -1,12 +1,14 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { StorageConstruct } from './constructs/storage';
 
 export interface HorizonStackProps extends StackProps {
   envName: 'dev' | 'prod';
 }
 
 export class HorizonStack extends Stack {
-  readonly envName: string;
+  readonly envName: 'dev' | 'prod';
+  readonly storage: StorageConstruct;
 
   constructor(scope: Construct, id: string, props: HorizonStackProps) {
     super(scope, id, {
@@ -14,6 +16,10 @@ export class HorizonStack extends Stack {
       stackName: `horizon-${props.envName}`,
     });
     this.envName = props.envName;
+
+    this.storage = new StorageConstruct(this, 'Storage', {
+      envName: props.envName,
+    });
   }
 }
 
