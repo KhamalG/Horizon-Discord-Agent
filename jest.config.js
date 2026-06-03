@@ -1,9 +1,11 @@
 module.exports = {
   testEnvironment: 'node',
-  roots: ['<rootDir>/test'],
+  roots: ['<rootDir>/test', '<rootDir>/lib'],
   testMatch: ['**/*.test.ts'],
+  // Prefer .ts sources over stale compiled .js artifacts in lib/
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest'
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: { module: 'CommonJS', moduleResolution: 'node' } }],
   },
   setupFilesAfterEnv: ['aws-cdk-lib/testhelpers/jest-autoclean'],
 };

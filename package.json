@@ -10,9 +10,11 @@
     "format:check": "prettier --check \"bin/**/*.ts\" \"lib/**/*.ts\" \"scripts/**/*.ts\"",
     "presynth": "bash scripts/check-docker.sh",
     "synth": "cdk synth",
-    "sam:invoke": "sam local invoke --no-staging"
+    "sam:invoke": "sam local invoke --no-staging",
+    "seed:dev": "ts-node scripts/seed-config.ts --env dev"
   },
   "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1059.0",
     "@types/jest": "^30",
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
