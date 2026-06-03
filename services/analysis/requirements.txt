@@ -1,2 +1,2 @@
 # Generated from pyproject.toml — do not edit manually.
-# Populate during Epic 2a when analysis service dependencies are defined.
+jsonschema>=4.21.0

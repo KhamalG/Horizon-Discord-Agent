@@ -1,6 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
-  roots: ['<rootDir>/test', '<rootDir>/lib'],
+  roots: ['<rootDir>/test', '<rootDir>/lib', '<rootDir>/shared'],
   testMatch: ['**/*.test.ts'],
   // Prefer .ts sources over stale compiled .js artifacts in lib/
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],

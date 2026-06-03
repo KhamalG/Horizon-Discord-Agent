@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SignalRecord",
+  "description": "The canonical signal record written by Python Lambda and read by TypeScript Lambda",
+  "type": "object",
+  "required": [
+    "analysis_id",
+    "ticker",
+    "analysis_date",
+    "depth",
+    "status",
+    "signal",
+    "summary",
+    "analysts_used",
+    "completed_at",
+    "processing_ms",
+    "delivery_type",
+    "created_at"
+  ],
+  "properties": {
+    "analysis_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this analysis run (UUID v4)"
+    },
+    "ticker": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10,
+      "description": "Stock ticker symbol, e.g. NVDA, AAPL"
+    },
+    "analysis_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The trading date this analysis targets, ISO 8601 (YYYY-MM-DD)"
+    },
+    "depth": {
+      "type": "string",
+      "enum": ["shallow", "medium"],
+      "description": "Analysis depth: shallow uses fewer analysts, medium uses the full set"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ANALYZING", "ANALYZED", "DELIVERING", "DELIVERED", "FAILED", "TIMED_OUT", "EXPIRED"],
+      "description": "Lifecycle state of the signal record"
+    },
+    "delivery_type": {
+      "type": "string",
+      "enum": ["cron", "on_demand"],
+      "description": "Whether the analysis was triggered by the scheduled cron or by a Discord command"
+    },
+    "signal": {
+      "type": "object",
+      "description": "The trading signal produced by the analysis",
+      "required": [
+        "rating",
+        "action",
+        "entry_price",
+        "stop_loss",
+        "price_target",
+        "time_horizon",
+        "confidence",
+        "time_window"
+      ],
+      "properties": {
+        "rating": {
+          "type": "string",
+          "enum": ["BUY", "SELL", "HOLD"],
+          "description": "Directional rating for the signal"
+        },
+        "action": {
+          "type": "string",
+          "description": "Human-readable action recommendation, e.g. 'Enter long position'"
+        },
+        "entry_price": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Suggested entry price in USD"
+        },
+        "stop_loss": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Stop-loss price in USD"
+        },
+        "price_target": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Price target in USD"
+        },
+        "time_horizon": {
+          "type": "string",
+          "description": "Human-readable time horizon from TradingAgents, e.g. '2 weeks'"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Model confidence score between 0 and 1"
+        },
+        "time_window": {
+          "type": "string",
+          "enum": ["short-term", "medium-term", "long-term"],
+          "description": "Normalized time window category derived from time_horizon"
+        }
+      },
+      "additionalProperties": false
+    },
+    "summary": {
+      "type": "object",
+      "description": "Human-readable narrative summary of the analysis",
+      "required": ["executive_summary", "investment_thesis", "key_risk"],
+      "properties": {
+        "executive_summary": {
+          "type": "string",
+          "description": "One-paragraph executive summary of the signal"
+        },
+        "investment_thesis": {
+          "type": "string",
+          "description": "Core reasoning for the signal rating"
+        },
+        "key_risk": {
+          "type": "string",
+          "description": "Primary risk factor that could invalidate the thesis"
+        }
+      },
+      "additionalProperties": false
+    },
+    "analysts_used": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "List of TradingAgents analyst names that contributed to this signal"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the analysis completed"
+    },
+    "processing_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total processing time in milliseconds"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the record was first created in DynamoDB"
+    }
+  },
+  "additionalProperties": true
+}
