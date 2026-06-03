@@ -1,0 +1,10 @@
+#!/usr/bin/env ts-node
+"use strict";
+/**
+ * Reads CDK synth output and emits env.json for SAM local invoke.
+ * Full implementation deferred to Epic 2a after first deploy.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+console.log('gen-env-json: stub — implement after first CDK deploy in Epic 2a');
+process.exit(0);
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZ2VuLWVudi1qc29uLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiZ2VuLWVudi1qc29uLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQ0E7OztHQUdHOztBQUVILE9BQU8sQ0FBQyxHQUFHLENBQUMsa0VBQWtFLENBQUMsQ0FBQztBQUNoRixPQUFPLENBQUMsSUFBSSxDQUFDLENBQUMsQ0FBQyxDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiIyEvdXNyL2Jpbi9lbnYgdHMtbm9kZVxuLyoqXG4gKiBSZWFkcyBDREsgc3ludGggb3V0cHV0IGFuZCBlbWl0cyBlbnYuanNvbiBmb3IgU0FNIGxvY2FsIGludm9rZS5cbiAqIEZ1bGwgaW1wbGVtZW50YXRpb24gZGVmZXJyZWQgdG8gRXBpYyAyYSBhZnRlciBmaXJzdCBkZXBsb3kuXG4gKi9cblxuY29uc29sZS5sb2coJ2dlbi1lbnYtanNvbjogc3R1YiDigJQgaW1wbGVtZW50IGFmdGVyIGZpcnN0IENESyBkZXBsb3kgaW4gRXBpYyAyYScpO1xucHJvY2Vzcy5leGl0KDApO1xuIl19

@@ -1,0 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handler = handler;
+// Placeholder Discord bot Lambda handler — implemented in Epic 2b.
+async function handler(event) {
+    throw new Error('Discord bot service not yet implemented');
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaGFuZGxlci5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbImhhbmRsZXIudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7QUFDQSwwQkFFQztBQUhELG1FQUFtRTtBQUM1RCxLQUFLLFVBQVUsT0FBTyxDQUFDLEtBQWM7SUFDMUMsTUFBTSxJQUFJLEtBQUssQ0FBQyx5Q0FBeUMsQ0FBQyxDQUFDO0FBQzdELENBQUMiLCJzb3VyY2VzQ29udGVudCI6WyIvLyBQbGFjZWhvbGRlciBEaXNjb3JkIGJvdCBMYW1iZGEgaGFuZGxlciDigJQgaW1wbGVtZW50ZWQgaW4gRXBpYyAyYi5cbmV4cG9ydCBhc3luYyBmdW5jdGlvbiBoYW5kbGVyKGV2ZW50OiB1bmtub3duKTogUHJvbWlzZTx2b2lkPiB7XG4gIHRocm93IG5ldyBFcnJvcignRGlzY29yZCBib3Qgc2VydmljZSBub3QgeWV0IGltcGxlbWVudGVkJyk7XG59XG4iXX0=
