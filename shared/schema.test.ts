@@ -34,4 +34,20 @@ describe('validateSignalRecord', () => {
     const invalid = { ...fixture, status: 'PENDING' };
     expect(() => validateSignalRecord(invalid)).toThrow(ZodError);
   });
+
+  it('throws ZodError when signal contains an unknown extra field', () => {
+    const invalid = {
+      ...fixture,
+      signal: { ...fixture.signal, extra_field: 'unexpected' },
+    };
+    expect(() => validateSignalRecord(invalid)).toThrow(ZodError);
+  });
+
+  it('throws ZodError when summary contains an unknown extra field', () => {
+    const invalid = {
+      ...fixture,
+      summary: { ...fixture.summary, extra_field: 'unexpected' },
+    };
+    expect(() => validateSignalRecord(invalid)).toThrow(ZodError);
+  });
 });
