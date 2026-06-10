@@ -1,0 +1,55 @@
+name: Deploy Prod
+
+# DO NOT MERGE TO MAIN WITHOUT RUNNING PROMOTION CHECKLIST
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production  # Requires manual approval from a required reviewer before deploy step
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: services/analysis/requirements.txt
+
+      - name: Install Python dependencies
+        run: pip install -r services/analysis/requirements.txt
+
+      - name: TypeScript tests (Jest)
+        run: npm test
+
+      - name: Python tests (pytest)
+        run: pytest services/analysis/ -v
+
+      - name: Deploy HorizonProdStack
+        run: npx cdk deploy HorizonProdStack --require-approval never
