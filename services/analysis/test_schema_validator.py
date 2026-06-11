@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-import pytest
 import jsonschema
+import pytest
 
 from schema_validator import validate_signal_record
 
