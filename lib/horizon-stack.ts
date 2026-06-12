@@ -1,5 +1,9 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Stack, StackProps } from 'aws-cdk-lib';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as sm from 'aws-cdk-lib/aws-secretsmanager';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as path from 'path';
 import { Construct } from 'constructs';
 import { StorageConstruct } from './constructs/storage';
 import { SecretsConstruct } from './constructs/secrets';
@@ -41,6 +45,46 @@ export class HorizonStack extends Stack {
 
     // SSM Parameter Store stubs for Discord channel IDs
     this.createSsmParameters();
+
+    // Skeleton Discord bot Lambda — Epic 1 scope (ping verification only)
+    this.createDiscordBotLambda();
+  }
+
+  private createDiscordBotLambda(): void {
+    const publicKeySecret = sm.Secret.fromSecretNameV2(
+      this,
+      'DiscordPublicKeyRef',
+      `/horizon/${this.envName}/discord/public-key`
+    );
+
+    const botFn = new NodejsFunction(this, 'DiscordBotFunction', {
+      functionName: `horizon-${this.envName}-discord-bot`,
+      runtime: lambda.Runtime.NODEJS_22_X,
+      entry: path.join(__dirname, '../services/discord-bot/src/handler.ts'),
+      handler: 'handler',
+      role: this.iamRoles.typescriptLambdaRole,
+      timeout: Duration.seconds(3),
+      environment: {
+        // CloudFormation resolves this from Secrets Manager at deploy time.
+        // Must store real public key before deploying (Phase 2 of story 1-6).
+        DISCORD_PUBLIC_KEY: publicKeySecret.secretValue.unsafeUnwrap().toString(),
+      },
+    });
+
+    const fnUrl = botFn.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE,
+      cors: {
+        allowedOrigins: ['https://discord.com'],
+        allowedMethods: [lambda.HttpMethod.POST],
+        allowedHeaders: ['*'],
+      },
+    });
+
+    // Printed after cdk deploy — paste this URL into Discord Developer Portal
+    new CfnOutput(this, 'DiscordBotFunctionUrl', {
+      value: fnUrl.url,
+      description: 'Paste into Discord Developer Portal → General Information → Interactions Endpoint URL',
+    });
   }
 
   private createSsmParameters(): void {
@@ -48,16 +92,13 @@ export class HorizonStack extends Stack {
       { name: 'bot-testing-channel-id', suffix: 'bot-testing-channel-id' },
       { name: 'khamal-analysis-channel-id', suffix: 'khamal-analysis-channel-id' },
     ];
-    const envs = ['prod', 'dev'] as const;
 
-    for (const env of envs) {
-      for (const channel of channels) {
-        new ssm.StringParameter(this, `Ssm${env}${channel.name}`, {
-          parameterName: `/horizon/${env}/discord/${channel.suffix}`,
-          stringValue: 'PLACEHOLDER',
-          description: `Horizon Discord ${channel.name} for ${env} environment`,
-        });
-      }
+    for (const channel of channels) {
+      new ssm.StringParameter(this, `Ssm${this.envName}${channel.name}`, {
+        parameterName: `/horizon/${this.envName}/discord/${channel.suffix}`,
+        stringValue: 'PLACEHOLDER',
+        description: `Horizon Discord ${channel.name} for ${this.envName} environment`,
+      });
     }
   }
 }
