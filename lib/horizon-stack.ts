@@ -76,7 +76,7 @@ export class HorizonStack extends Stack {
       cors: {
         allowedOrigins: ['https://discord.com'],
         allowedMethods: [lambda.HttpMethod.POST],
-        allowedHeaders: ['*'],
+        allowedHeaders: ['Content-Type', 'X-Signature-Ed25519', 'X-Signature-Timestamp'],
       },
     });
 

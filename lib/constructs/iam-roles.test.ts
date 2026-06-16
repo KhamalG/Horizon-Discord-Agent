@@ -186,9 +186,8 @@ describe('IamRolesConstruct — TypeScript Lambda role permissions', () => {
   });
 
   // Negative assertions — security isolation
-  test('does NOT have access to /horizon/python/* secrets', () => {
-    // TypeScript role's Secrets Manager resources must NOT include /python/ paths.
-    // Find the policy for this role and inspect resource ARNs.
+  test('does NOT have access to /anthropic/* Secrets Manager path', () => {
+    // TypeScript role must not access the Anthropic API key — that is Python-only.
     const resources = templateJson['Resources'] as Record<
       string,
       { Type: string; Properties: Record<string, unknown> }
@@ -218,10 +217,10 @@ describe('IamRolesConstruct — TypeScript Lambda role permissions', () => {
         }
       }
     }
-    const hasPythonPath = smResources.some(
+    const hasAnthropicPath = smResources.some(
       (r) => typeof r === 'string' && r.includes('/anthropic/')
     );
-    expect(hasPythonPath).toBe(false);
+    expect(hasAnthropicPath).toBe(false);
   });
 
   test('does NOT have SQS SendMessage', () => {
@@ -229,8 +228,8 @@ describe('IamRolesConstruct — TypeScript Lambda role permissions', () => {
   });
 });
 
-describe('IamRolesConstruct — Python role does NOT access /typescript/* secrets', () => {
-  test('Python role Secrets Manager resources do not include /typescript/ path', () => {
+describe('IamRolesConstruct — Python role Secrets Manager scope', () => {
+  test('Python role secret resources cover exactly /anthropic/* and /discord/* paths — no extra scope', () => {
     const template = buildTemplate('dev');
     const templateJson = template.toJSON();
     const resources = templateJson['Resources'] as Record<
@@ -262,11 +261,14 @@ describe('IamRolesConstruct — Python role does NOT access /typescript/* secret
         }
       }
     }
-    // Python role's secrets paths must not contain /typescript/
-    const hasTypescriptPath = smResources.some(
-      (r) => typeof r === 'string' && r.includes('/typescript/')
+    // Every secret ARN granted to the Python role must be scoped to /anthropic/ or /discord/ only.
+    const allScopedCorrectly = smResources.every(
+      (r) => typeof r === 'string' && (r.includes('/anthropic/') || r.includes('/discord/'))
     );
-    expect(hasTypescriptPath).toBe(false);
+    expect(allScopedCorrectly).toBe(true);
+    // And both service paths must be present.
+    expect(smResources.some((r) => typeof r === 'string' && r.includes('/anthropic/'))).toBe(true);
+    expect(smResources.some((r) => typeof r === 'string' && r.includes('/discord/'))).toBe(true);
   });
 });
 

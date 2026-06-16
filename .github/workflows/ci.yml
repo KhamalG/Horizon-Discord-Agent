@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [master, dev]
 
 permissions:
   id-token: write
@@ -52,4 +52,4 @@ jobs:
         run: ruff check services/analysis/
 
       - name: CDK synth
-        run: npx cdk synth --no-staging
+        run: npx cdk synth HorizonDevStack HorizonProdStack --no-staging

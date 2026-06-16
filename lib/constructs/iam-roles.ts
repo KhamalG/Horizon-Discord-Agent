@@ -19,13 +19,21 @@ export class IamRolesConstruct extends Construct {
     super(scope, id);
     const { signalsTableArn, configTableArn, signalsStreamArn, cronQueueArn, envName } = props;
 
-    // Placeholder queue ARN when Epic 2a queue doesn't exist yet
-    const queueArn =
-      cronQueueArn ?? `arn:aws:sqs:*:*:${envName}-horizon-cron-queue`;
+    const stack = cdk.Stack.of(this);
+    let queueArn: string;
+    if (cronQueueArn) {
+      queueArn = cronQueueArn;
+    } else {
+      cdk.Annotations.of(this).addWarning(
+        'cronQueueArn not provided — EventBridge and Python Lambda roles use a placeholder queue ARN. Wire the real queue ARN before deploying Epic 2a.'
+      );
+      queueArn = `arn:aws:sqs:${stack.region}:${stack.account}:${envName}-horizon-cron-queue`;
+    }
 
     this.pythonLambdaRole = this.createPythonRole(
       signalsTableArn,
       configTableArn,
+      queueArn,
       envName
     );
     this.typescriptLambdaRole = this.createTypescriptRole(
@@ -39,6 +47,7 @@ export class IamRolesConstruct extends Construct {
   private createPythonRole(
     signalsTableArn: string,
     configTableArn: string,
+    queueArn: string,
     envName: string
   ): iam.Role {
     const role = new iam.Role(this, 'PythonLambdaRole', {
@@ -48,6 +57,8 @@ export class IamRolesConstruct extends Construct {
 
     cdk.Tags.of(role).add('envName', envName);
     cdk.Tags.of(role).add('service', 'horizon-python-lambda');
+
+    const stack = cdk.Stack.of(this);
 
     // DynamoDB: both signals and config tables (Python reads/writes both)
     role.addToPolicy(
@@ -68,14 +79,23 @@ export class IamRolesConstruct extends Construct {
       })
     );
 
-    // Secrets Manager: Python-scoped paths only
+    // SQS: cron queue stub for Epic 2a
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['sqs:SendMessage'],
+        resources: [queueArn],
+      })
+    );
+
+    // Secrets Manager: anthropic and discord service paths (Python-scoped)
     role.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
-          `arn:aws:secretsmanager:*:*:secret:/horizon/${envName}/anthropic/*`,
-          `arn:aws:secretsmanager:*:*:secret:/horizon/${envName}/discord/*`,
+          `arn:aws:secretsmanager:${stack.region}:${stack.account}:secret:/horizon/${envName}/anthropic/*`,
+          `arn:aws:secretsmanager:${stack.region}:${stack.account}:secret:/horizon/${envName}/discord/*`,
         ],
       })
     );
@@ -89,7 +109,10 @@ export class IamRolesConstruct extends Construct {
           'logs:CreateLogStream',
           'logs:PutLogEvents',
         ],
-        resources: ['arn:aws:logs:*:*:*'],
+        resources: [
+          `arn:aws:logs:${stack.region}:${stack.account}:log-group:/aws/lambda/horizon-*`,
+          `arn:aws:logs:${stack.region}:${stack.account}:log-group:/aws/lambda/horizon-*:*`,
+        ],
       })
     );
 
@@ -117,6 +140,8 @@ export class IamRolesConstruct extends Construct {
 
     cdk.Tags.of(role).add('envName', envName);
     cdk.Tags.of(role).add('service', 'horizon-typescript-lambda');
+
+    const stack = cdk.Stack.of(this);
 
     // DynamoDB: signals table only (NOT config table)
     role.addToPolicy(
@@ -146,25 +171,24 @@ export class IamRolesConstruct extends Construct {
       })
     );
 
-    // Secrets Manager: TypeScript-scoped discord paths only (bot-token, public-key)
+    // Secrets Manager: discord paths only (bot-token, public-key) — no anthropic access
     role.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
-          `arn:aws:secretsmanager:*:*:secret:/horizon/${envName}/discord/*`,
+          `arn:aws:secretsmanager:${stack.region}:${stack.account}:secret:/horizon/${envName}/discord/*`,
         ],
       })
     );
 
-    // SSM: Discord channel parameters (prod + dev)
+    // SSM: Discord channel parameters for this env only
     role.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['ssm:GetParameter'],
         resources: [
-          `arn:aws:ssm:*:*:parameter/horizon/prod/discord/*`,
-          `arn:aws:ssm:*:*:parameter/horizon/dev/discord/*`,
+          `arn:aws:ssm:${stack.region}:${stack.account}:parameter/horizon/${envName}/discord/*`,
         ],
       })
     );
@@ -178,7 +202,10 @@ export class IamRolesConstruct extends Construct {
           'logs:CreateLogStream',
           'logs:PutLogEvents',
         ],
-        resources: ['arn:aws:logs:*:*:*'],
+        resources: [
+          `arn:aws:logs:${stack.region}:${stack.account}:log-group:/aws/lambda/horizon-*`,
+          `arn:aws:logs:${stack.region}:${stack.account}:log-group:/aws/lambda/horizon-*:*`,
+        ],
       })
     );
 

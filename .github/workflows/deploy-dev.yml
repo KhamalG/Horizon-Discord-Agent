@@ -4,6 +4,10 @@ on:
   push:
     branches: [dev]
 
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: true
+
 permissions:
   id-token: write
   contents: read
@@ -48,8 +52,11 @@ jobs:
       - name: Python tests (pytest)
         run: pytest services/analysis/ -v
 
+      - name: Python lint (ruff)
+        run: ruff check services/analysis/
+
       - name: Deploy HorizonDevStack
-        run: npx cdk deploy HorizonDevStack --require-approval never
+        run: npx cdk deploy HorizonDevStack --require-approval never --outputs-file /tmp/dev-outputs.json
 
       - name: Show stack outputs
-        run: npx cdk deploy HorizonDevStack --require-approval never --outputs-file /tmp/dev-outputs.json && cat /tmp/dev-outputs.json || true
+        run: cat /tmp/dev-outputs.json

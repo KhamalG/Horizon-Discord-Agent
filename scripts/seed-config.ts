@@ -86,6 +86,20 @@ async function seed() {
     console.log(`✅ Written ACTIVE pointer → ${VERSIONED_SK}`);
   } catch (err) {
     if (err instanceof TransactionCanceledException) {
+      const reasons = err.CancellationReasons ?? [];
+      const allConditional = reasons.every(
+        (r) => r.Code === 'ConditionalCheckFailed' || r.Code === 'None'
+      );
+      const anyMissed = reasons.some((r) => r.Code === 'None');
+      if (!allConditional || anyMissed) {
+        // Partial state: some items exist, others don't — requires manual investigation
+        console.error(
+          '❌ Partial seed state detected — not all items exist. Inspect the table manually.',
+          '\nCancellationReasons:',
+          JSON.stringify(reasons, null, 2)
+        );
+        process.exit(1);
+      }
       console.log(`ℹ️  Seed items already exist — skipping (idempotent)`);
     } else {
       throw err;
