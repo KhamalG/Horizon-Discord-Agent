@@ -33,7 +33,6 @@ export class IamRolesConstruct extends Construct {
     this.pythonLambdaRole = this.createPythonRole(
       signalsTableArn,
       configTableArn,
-      queueArn,
       envName
     );
     this.typescriptLambdaRole = this.createTypescriptRole(
@@ -47,7 +46,6 @@ export class IamRolesConstruct extends Construct {
   private createPythonRole(
     signalsTableArn: string,
     configTableArn: string,
-    queueArn: string,
     envName: string
   ): iam.Role {
     const role = new iam.Role(this, 'PythonLambdaRole', {
@@ -79,23 +77,14 @@ export class IamRolesConstruct extends Construct {
       })
     );
 
-    // SQS: cron queue stub for Epic 2a
-    role.addToPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['sqs:SendMessage'],
-        resources: [queueArn],
-      })
-    );
-
     // Secrets Manager: anthropic and discord service paths (Python-scoped)
     role.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
-          `arn:aws:secretsmanager:${stack.region}:${stack.account}:secret:/horizon/${envName}/anthropic/*`,
-          `arn:aws:secretsmanager:${stack.region}:${stack.account}:secret:/horizon/${envName}/discord/*`,
+          `arn:aws:secretsmanager:*:*:secret:/horizon/${envName}/anthropic/*`,
+          `arn:aws:secretsmanager:*:*:secret:/horizon/${envName}/discord/*`,
         ],
       })
     );
