@@ -8,13 +8,11 @@
 
 FROM public.ecr.aws/lambda/python:3.13
 
-# Install production dependencies from pinned requirements.txt.
-# TradingAgents and its transitive deps are installed from PyPI.
+# Build context: services/analysis/ (CDK fromImageAsset uses that directory).
 # Dev-only tools (pytest, ruff) are NOT installed here.
-COPY services/analysis/requirements.txt ${LAMBDA_TASK_ROOT}/
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/
 RUN pip install -r ${LAMBDA_TASK_ROOT}/requirements.txt --no-cache-dir
 
-# Copy analysis service source to the Lambda task root.
-COPY services/analysis/ ${LAMBDA_TASK_ROOT}/
+COPY . ${LAMBDA_TASK_ROOT}/
 
 CMD ["handler.handler"]

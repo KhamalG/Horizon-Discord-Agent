@@ -28,8 +28,11 @@ export class AnalysisLambdaConstruct extends Construct {
 
     this.analysisFunction = new lambda.DockerImageFunction(this, 'AnalysisFunction', {
       functionName: `horizon-${envName}-analysis`,
-      code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, '../../'), {
-        file: 'services/analysis/Dockerfile',
+      // Build context is services/analysis/ so the fingerprint only hashes Python
+      // source files — avoids the circular-snapshot problem where __snapshots__/*.snap
+      // (inside the repo-root context) would change the hash on every test update.
+      code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, '../../services/analysis'), {
+        file: 'Dockerfile',
       }),
       memorySize: 3008,
       timeout: cdk.Duration.seconds(932),
