@@ -2,6 +2,7 @@ cdk.out/
 .cdk.staging/
 node_modules/
 env.json
+.env.spike
 
 # Compiled TypeScript outputs from lib/ — never commit
 lib/*.js

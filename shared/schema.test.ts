@@ -7,6 +7,10 @@ const fixture = JSON.parse(
   fs.readFileSync(path.join(__dirname, '..', 'fixtures', 'signal-record.json'), 'utf-8'),
 );
 
+const noPricesFixture = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '..', 'fixtures', 'signal-record-no-prices.json'), 'utf-8'),
+);
+
 describe('validateSignalRecord', () => {
   it('accepts valid fixture and returns typed object', () => {
     const result = validateSignalRecord(fixture);
@@ -14,6 +18,14 @@ describe('validateSignalRecord', () => {
     expect(result.status).toBe('ANALYZED');
     expect(result.signal.rating).toBe('BUY');
     expect(result.signal.confidence).toBe(0.74);
+  });
+
+  it('accepts a HOLD signal with all three price fields absent', () => {
+    const result = validateSignalRecord(noPricesFixture);
+    expect(result.signal.rating).toBe('HOLD');
+    expect(result.signal.entry_price).toBeUndefined();
+    expect(result.signal.stop_loss).toBeUndefined();
+    expect(result.signal.price_target).toBeUndefined();
   });
 
   it('throws ZodError when a required field is missing', () => {

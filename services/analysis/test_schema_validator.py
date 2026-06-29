@@ -8,6 +8,7 @@ from schema_validator import validate_signal_record
 
 _REPO_ROOT = Path(__file__).parent.parent.parent
 _FIXTURE_PATH = _REPO_ROOT / "fixtures" / "signal-record.json"
+_NO_PRICES_FIXTURE_PATH = _REPO_ROOT / "fixtures" / "signal-record-no-prices.json"
 
 
 @pytest.fixture
@@ -16,8 +17,18 @@ def valid_record():
         return json.load(f)
 
 
+@pytest.fixture
+def no_prices_record():
+    with open(_NO_PRICES_FIXTURE_PATH) as f:
+        return json.load(f)
+
+
 def test_valid_fixture_passes(valid_record):
     validate_signal_record(valid_record)  # no exception
+
+
+def test_hold_signal_without_price_fields_passes(no_prices_record):
+    validate_signal_record(no_prices_record)  # no exception
 
 
 def test_missing_ticker_raises(valid_record):
