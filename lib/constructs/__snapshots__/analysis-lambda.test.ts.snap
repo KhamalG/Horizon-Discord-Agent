@@ -21,7 +21,7 @@ exports[`AnalysisLambdaConstruct matches snapshot 1`] = `
         ],
         "Code": {
           "ImageUri": {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:9e8b2a31c8f3367df45cfa6cc6b3e09277e7e4af4117f04c2d8917fc5ad7e967",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:f9210dbeba169d4bcf220310c59d8f940e0c9215dc719f4346a947bf03abbb55",
           },
         },
         "FunctionName": "horizon-dev-analysis",
