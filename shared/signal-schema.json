@@ -55,9 +55,6 @@
       "required": [
         "rating",
         "action",
-        "entry_price",
-        "stop_loss",
-        "price_target",
         "time_horizon",
         "confidence",
         "time_window"

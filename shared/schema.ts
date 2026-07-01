@@ -4,9 +4,9 @@ import { z } from 'zod';
 const SignalSchema = z.object({
   rating: z.enum(['BUY', 'SELL', 'HOLD']),
   action: z.string(),
-  entry_price: z.number().min(0),
-  stop_loss: z.number().min(0),
-  price_target: z.number().min(0),
+  entry_price: z.number().min(0).optional(),
+  stop_loss: z.number().min(0).optional(),
+  price_target: z.number().min(0).optional(),
   time_horizon: z.string(),
   confidence: z.number().min(0).max(1),
   time_window: z.enum(['short-term', 'medium-term', 'long-term']),

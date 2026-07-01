@@ -1,0 +1,23 @@
+# Exclude directories that change frequently or contain dev/CI artifacts
+cdk.out/
+node_modules/
+.git/
+.github/
+dist/
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# BMAD planning artifacts
+_bmad/
+_bmad-output/
+docs/
+agents/
+
+# Test files (production image only)
+tests/
+test/
+
+# Credentials and secrets
+.env
+.env.*

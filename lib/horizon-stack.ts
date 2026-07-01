@@ -8,6 +8,8 @@ import { Construct } from 'constructs';
 import { StorageConstruct } from './constructs/storage';
 import { SecretsConstruct } from './constructs/secrets';
 import { IamRolesConstruct } from './constructs/iam-roles';
+import { SqsQueuesConstruct } from './constructs/sqs-queues';
+import { AnalysisLambdaConstruct } from './constructs/analysis-lambda';
 
 export interface HorizonStackProps extends StackProps {
   envName: 'dev' | 'prod';
@@ -35,13 +37,29 @@ export class HorizonStack extends Stack {
       envName: props.envName,
     });
 
+    const queues = new SqsQueuesConstruct(this, 'SqsQueues', {
+      envName: props.envName,
+    });
+
     // Three IAM roles with zero write-permission overlap
     this.iamRoles = new IamRolesConstruct(this, 'IamRoles', {
       signalsTableArn: this.storage.signalsTableArn,
       configTableArn: this.storage.configTableArn,
       signalsStreamArn: this.storage.signalsTableStreamArn,
+      cronQueueArn: queues.cronQueueArn,
       envName: props.envName,
     });
+
+    const analysisLambda = new AnalysisLambdaConstruct(this, 'AnalysisLambda', {
+      envName: props.envName,
+      cronQueue: queues.cronQueue,
+      role: this.iamRoles.pythonLambdaRole,
+    });
+
+    // N-3: all resource identifiers injected as env vars at stack level, never hardcoded in handler
+    analysisLambda.analysisFunction.addEnvironment('SIGNALS_TABLE_NAME', this.storage.signalsTable.tableName);
+    analysisLambda.analysisFunction.addEnvironment('CONFIG_TABLE_NAME', this.storage.configTable.tableName);
+    analysisLambda.analysisFunction.addEnvironment('CRON_QUEUE_URL', queues.cronQueueUrl);
 
     // SSM Parameter Store stubs for Discord channel IDs
     this.createSsmParameters();
