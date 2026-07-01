@@ -44,7 +44,9 @@ jobs:
           cache-dependency-path: services/analysis/requirements.txt
 
       - name: Install Python dependencies
-        run: pip install -r services/analysis/requirements.txt
+        run: |
+          pip install -r services/analysis/requirements.txt
+          pip install "services/analysis[dev]"
 
       - name: TypeScript tests (Jest)
         run: npm test
