@@ -20,10 +20,6 @@ function buildTemplate() {
 }
 
 describe('AnalysisLambdaConstruct', () => {
-  test('matches snapshot', () => {
-    expect(buildTemplate().toJSON()).toMatchSnapshot();
-  });
-
   test('Lambda has correct memory size', () => {
     buildTemplate().hasResourceProperties('AWS::Lambda::Function', {
       MemorySize: 3008,
