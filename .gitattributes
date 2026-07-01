@@ -1,0 +1,9 @@
+# Normalize all text files to LF on checkout (all platforms).
+# Keeps CDK Docker asset hashes identical between Windows devs and Linux CI.
+* text=auto eol=lf
+
+# Treat these as binary so git never touches their line endings.
+*.snap binary
+*.png binary
+*.jpg binary
+*.zip binary
